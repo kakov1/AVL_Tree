@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tree_vizualization.hpp"
 #include <functional>
 #include <string>
 #include <cassert>
@@ -23,7 +22,7 @@ namespace SearchTree {
             };
 
             Comp comp_;
-            std::list<Node*> nodes;
+            std::list<Node*> nodes_;
 
             int get_height(Node *node) {
                 return node!=nullptr?node->height_:0;
@@ -102,7 +101,7 @@ namespace SearchTree {
                 if (node == nullptr) {
                     node = create_node(key);
                     node->parent_ = parent;
-                    return balance(node);
+                    return node;
                 }
 
                 if (key < node->key_) {
@@ -150,9 +149,11 @@ namespace SearchTree {
 
             SearchTree() = default;
 
+            size_t get_size() const { return nodes_.size(); }
+
             Node* create_node(KeyT key) {
                 Node* new_node = new Node(key);
-                nodes.push_back(new_node);
+                nodes_.push_back(new_node);
 
                 return new_node;
             }
@@ -234,9 +235,6 @@ namespace SearchTree {
                 }
 
                 while (true) {
-                    //std::cout <<"----------"<<std::endl;
-                    //std::cout << cur_node->key_<<std::endl;
-                    //std::cout << cur_node->right_<<std::endl;
                     if (key < cur_node->key_) {
                         if (cur_node->left_ != nullptr) {
                             cur_node = cur_node->left_;
@@ -254,11 +252,9 @@ namespace SearchTree {
                         }
                     }
                     
-                    //std::cout << cur_node->key_ << " " << max_node->key_ << std::endl;
                     if (cur_node->key_ > max_node->key_ && cur_node->key_ < key) {
                         max_node = cur_node;
                     }
-                    //std::cout <<"----------"<<std::endl;
                 }
             }
 
@@ -309,19 +305,16 @@ namespace SearchTree {
                 Node* left_border_node = upper_bound(left_border);
                 Node* right_border_node = lower_bound(right_border);
 
-                //std::cout<<left_border << " " << right_border <<std::endl;
-                //std::cout<<left_border_node->key_ << " " << right_border_node->key_ <<std::endl;
-
                 if (left_border_node == nullptr || right_border_node == nullptr) return 0;
                 if (right_border_node->key_ < left_border_node->key_) return 0;
                 if (right_border_node->key_ == left_border_node->key_) return 1;
 
-                return distance(left_border_node->key_, right_border_node->key_);
+                return distance(root_, left_border_node->key_, right_border_node->key_);
             }
 
-            size_t distance(KeyT left_border, KeyT right_border) const {     
-                Node* next_left_border = next(search(root_, left_border));
-                Node* next_right_border = prev(search(root_, right_border));
+            size_t distance(Node* node, KeyT left_border, KeyT right_border) const {     
+                Node* next_left_border = next(search(node, left_border));
+                Node* next_right_border = prev(search(node, right_border));
 
                 if (next_left_border->key_ == right_border) {
                     return 2;
@@ -330,8 +323,19 @@ namespace SearchTree {
                 if (next_left_border->key_ == next_right_border->key_) {
                     return 3;
                 }
+                
 
-                return 2 + distance(next_left_border->key_,
+                //if (search(node->right_, next_left_border->key_) &&
+                    //search(node->right_, next_right_border->key_)) {
+                    //node = node->right_;
+                //}
+
+                //if (search(node->left_, next_left_border->key_) &&
+                    //search(node->left_, next_right_border->key_)) {
+                    //node = node->left_;
+                //}
+
+                return 2 + distance(node, next_left_border->key_,
                                     next_right_border->key_);
             }
     };

@@ -4,6 +4,7 @@
 #include <graphviz/gvc.h>
 #include <fstream>
 #include <string>
+#include <iostream>
 
 bool save_tree_png(std::string file_name){
     GVC_t *gvc;
@@ -39,20 +40,25 @@ void vizualize_node(const NodePtr node, std::ofstream &dot_file) {
     vizualize_node(node->right_, dot_file);
 }
 
-
-template<typename Node>
-void vizualize_tree(const Node* node,
+template<typename KeyT>
+void vizualize_tree(const SearchTree::SearchTree<KeyT>& tree,
                     const std::string gv_file_name = "tree") {
+
+    if (tree.get_size() > 20) {
+        std::cout << "Node is too big for vizualization" << std::endl;
+        return;
+    } 
+    
     std::string gv_file_path = gv_file_name + ".gv";
     std::ofstream gv_file;
     gv_file.open(gv_file_path);
 
-    auto left_child = node->left_;
-    auto right_child = node->right_;
+    auto left_child = tree.root_->left_;
+    auto right_child = tree.root_->right_;
 
     gv_file << "digraph SearchTree {" << std::endl;
 
-    vizualize_node(node, gv_file);
+    vizualize_node(tree.root_, gv_file);
 
     gv_file << "}" << std::endl;
 

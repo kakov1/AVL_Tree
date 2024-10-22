@@ -1,10 +1,10 @@
 from random import randint, choice
 
-requests_number = 15
+requests_number = 50
 tests_number = int(input("Enter tests number:\n"))
 max_number = int(input("Enter max number:\n"))
 
-for i in range(8, 8 + tests_number):
+for i in range(11, 11 + tests_number):
     test_file = open(f"./tests/{i}test.txt", "w")
     for j in range(requests_number):
         if choice(['q', 'k']) == 'k' or j == 0:
