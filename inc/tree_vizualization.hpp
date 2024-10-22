@@ -5,17 +5,17 @@
 #include <fstream>
 #include <string>
 
-bool save_tree_png(std::string file_path){
+bool save_tree_png(std::string file_name){
     GVC_t *gvc;
     Agraph_t *g;
     FILE *fp;
 
     gvc = gvContext();
-    fp = fopen(file_path.c_str(), "r");
+    fp = fopen((file_name + ".gv").c_str(), "r");
     g = agread(fp, 0);
 
     gvLayout(gvc, g, "dot");
-    gvRender(gvc, g, "png", fopen("tree.png", "w"));
+    gvRender(gvc, g, "png", fopen((file_name + ".png").c_str(), "w"));
 
     gvFreeLayout(gvc, g);
     agclose(g);
@@ -40,22 +40,23 @@ void vizualize_node(const NodePtr node, std::ofstream &dot_file) {
 }
 
 
-template<typename KeyT>
-void vizualize_tree(const SearchTree::SearchTree<KeyT> &tree,
-                    const std::string gv_file_path = "tree.gv") {
+template<typename Node>
+void vizualize_tree(const Node* node,
+                    const std::string gv_file_name = "tree") {
+    std::string gv_file_path = gv_file_name + ".gv";
     std::ofstream gv_file;
     gv_file.open(gv_file_path);
 
-    auto left_child = tree.root_->left_;
-    auto right_child = tree.root_->right_;
+    auto left_child = node->left_;
+    auto right_child = node->right_;
 
     gv_file << "digraph SearchTree {" << std::endl;
 
-    vizualize_node(tree.root_, gv_file);
+    vizualize_node(node, gv_file);
 
     gv_file << "}" << std::endl;
 
-    save_tree_png(gv_file_path);
+    save_tree_png(gv_file_name);
  
     gv_file.close();
 }

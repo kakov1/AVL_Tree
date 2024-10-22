@@ -50,7 +50,7 @@ int main() {
 
     std::cout << std::endl;
 
-    vizualize_tree(tree);
+    //vizualize_tree(tree.root_);
   
     return 0;
 }

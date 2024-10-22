@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tree_vizualization.hpp"
 #include <functional>
 #include <string>
 #include <cassert>
@@ -83,13 +84,13 @@ namespace SearchTree {
                 set_height(node);
                 if (calculate_balance_factor(node) > 1) {
                     if (node->left_ != nullptr && calculate_balance_factor(node->left_) < 0) {
-                        rotate_left(node->left_);
+                        node->left_ = rotate_left(node->left_);
                     }
                     return rotate_right(node);
                 }
                 else if (calculate_balance_factor(node) < -1) {
                     if (node->right_ != nullptr && calculate_balance_factor(node->right_) > 0) {
-                        rotate_right(node->right_);
+                        node->right_ = rotate_right(node->right_);
                     }
                     return rotate_left(node);
                 }
@@ -101,7 +102,7 @@ namespace SearchTree {
                 if (node == nullptr) {
                     node = create_node(key);
                     node->parent_ = parent;
-                    return node;
+                    return balance(node);
                 }
 
                 if (key < node->key_) {
@@ -156,7 +157,7 @@ namespace SearchTree {
                 return new_node;
             }
 
-            void insert(KeyT key) {
+            void insert(KeyT key) { 
                 if (search(root_, key) != nullptr) return;
                 root_ = insert_to_node(root_, nullptr, key);
             }
