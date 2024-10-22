@@ -7,19 +7,18 @@
 #include <iostream>
 
 namespace SearchTree {
-
     template <typename KeyT, typename Comp = std::less<KeyT>>
     class SearchTree {
         private:
+            class Node {
+                public:
+                    KeyT key_;
+                    Node *parent_ = nullptr, *right_ = nullptr, *left_ = nullptr;
+                    size_t height_ = 1;
 
-            struct Node {
-                KeyT key_;
-                Node *parent_ = nullptr, *right_ = nullptr, *left_ = nullptr;
-                size_t height_ = 1;
-
-                Node() {}
-                Node(KeyT key) : key_(key) {}
-                ~Node() = default;
+                    Node() = default;
+                    Node(KeyT key) : key_(key) {};
+                    ~Node() = default;
             };
 
             Comp comp_;
@@ -49,6 +48,9 @@ namespace SearchTree {
                 left_copy->right_ = node;
                 left_copy->parent_= node->parent_;
                 node->parent_ = left_copy;
+                if (node->left_ != nullptr) {
+                    node->left_->parent_ = node;
+                }
 
                 set_height(node);
                 set_height(left_copy);
@@ -65,6 +67,9 @@ namespace SearchTree {
                 right_copy->left_ = node;
                 right_copy->parent_= node->parent_;
                 node->parent_ = right_copy;
+                if (node->right_ != nullptr) {
+                    node->right_->parent_ = node;
+                }
 
                 set_height(node);
                 set_height(right_copy);
@@ -91,32 +96,58 @@ namespace SearchTree {
                 return node;
             }
 
-            Node* insert_to_node(Node* node, KeyT key) {
+            Node* insert_to_node(Node* node, Node* parent, KeyT key) {
 
                 if (node == nullptr) {
                     node = create_node(key);
-                    return node;
-                }
-
-                if (search(node, key) != nullptr) {
+                    node->parent_ = parent;
                     return node;
                 }
 
                 if (key < node->key_) {
-                    node->left_ = insert_to_node(node->left_, key);
+                    node->left_ = insert_to_node(node->left_, node, key);
                 }
 
                 else {
-                    node->right_ = insert_to_node(node->right_, key);
+                    node->right_ = insert_to_node(node->right_, node, key);
                 }
 
                 return balance(node);
             }
 
+            Node* get_position(KeyT key) const {
+                if (search(root_, key) != nullptr) {
+                    return search(root_, key);
+                }
+
+                Node* cur_node = root_;
+
+                while (true) {
+                    if (key < cur_node->key_) {
+                        if (cur_node->left_ != nullptr) {
+                            cur_node = cur_node->left_;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    else {
+                        if (cur_node->right_ != nullptr) { 
+                            cur_node = cur_node->right_;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                }
+
+                return cur_node;
+            }
+
         public:
             Node *root_ = nullptr;
 
-            SearchTree() {}
+            SearchTree() = default;
 
             Node* create_node(KeyT key) {
                 Node* new_node = new Node(key);
@@ -126,7 +157,8 @@ namespace SearchTree {
             }
 
             void insert(KeyT key) {
-                root_ = insert_to_node(root_, key);
+                if (search(root_, key) != nullptr) return;
+                root_ = insert_to_node(root_, nullptr, key);
             }
 
             Node* search(Node *node, KeyT key) const {
@@ -184,7 +216,122 @@ namespace SearchTree {
                     node = cur_parent;
                     cur_parent = cur_parent->parent_;
                 }
+
                 return cur_parent;
+            }
+
+            Node* lower_bound(KeyT key) const {
+                if (search(root_, key) != nullptr) {
+                    return search(root_, key);
+                }
+
+                Node* cur_node = root_;
+                Node* max_node = min(root_);
+
+                if (cur_node->key_ > max_node->key_ && cur_node->key_ < key) {
+                    max_node = cur_node;
+                }
+
+                while (true) {
+                    //std::cout <<"----------"<<std::endl;
+                    //std::cout << cur_node->key_<<std::endl;
+                    //std::cout << cur_node->right_<<std::endl;
+                    if (key < cur_node->key_) {
+                        if (cur_node->left_ != nullptr) {
+                            cur_node = cur_node->left_;
+                        }
+                        else {
+                            return max_node;
+                        }
+                    }
+                    else {
+                        if (cur_node->right_ != nullptr) { 
+                            cur_node = cur_node->right_;
+                        }
+                        else {
+                            return max_node;
+                        }
+                    }
+                    
+                    //std::cout << cur_node->key_ << " " << max_node->key_ << std::endl;
+                    if (cur_node->key_ > max_node->key_ && cur_node->key_ < key) {
+                        max_node = cur_node;
+                    }
+                    //std::cout <<"----------"<<std::endl;
+                }
+            }
+
+            Node* upper_bound(KeyT key) const {
+                if (search(root_, key) != nullptr) {
+                    return search(root_, key);
+                }
+
+                Node* cur_node = root_;
+                Node* min_node = max(root_);
+
+                if (cur_node->key_ < min_node->key_ && cur_node->key_ > key) {
+                    min_node = cur_node;
+                }
+
+                while (true) {
+                    if (key < cur_node->key_) {
+                        if (cur_node->left_ != nullptr) {
+                            cur_node = cur_node->left_;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    else {
+                        if (cur_node->right_ != nullptr) { 
+                            cur_node = cur_node->right_;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+
+                    if (cur_node->key_ < min_node->key_ && cur_node->key_ > key) {
+                        min_node = cur_node;
+                    }
+                }
+
+                return min_node;
+            }
+
+            size_t range_query(KeyT left_border, KeyT right_border) const {
+                assert(max(root_) && min(root_));
+
+                if (left_border > max(root_)->key_) return 0;
+                if (right_border < min(root_)->key_) return 0;
+                
+                Node* left_border_node = upper_bound(left_border);
+                Node* right_border_node = lower_bound(right_border);
+
+                //std::cout<<left_border << " " << right_border <<std::endl;
+                //std::cout<<left_border_node->key_ << " " << right_border_node->key_ <<std::endl;
+
+                if (left_border_node == nullptr || right_border_node == nullptr) return 0;
+                if (right_border_node->key_ < left_border_node->key_) return 0;
+                if (right_border_node->key_ == left_border_node->key_) return 1;
+
+                return distance(left_border_node->key_, right_border_node->key_);
+            }
+
+            size_t distance(KeyT left_border, KeyT right_border) const {     
+                Node* next_left_border = next(search(root_, left_border));
+                Node* next_right_border = prev(search(root_, right_border));
+
+                if (next_left_border->key_ == right_border) {
+                    return 2;
+                }
+
+                if (next_left_border->key_ == next_right_border->key_) {
+                    return 3;
+                }
+
+                return 2 + distance(next_left_border->key_,
+                                    next_right_border->key_);
             }
     };
 }

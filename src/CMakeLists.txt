@@ -1,9 +1,6 @@
-cmake_minimum_required(VERSION 3.11)
-project(src)
+add_executable(tree tree.cpp ../inc/AVL_Tree.hpp ../inc/tree_vizualization.hpp)
+add_executable(set set.cpp)
 
-set(CMAKE_CXX_STANDARD 20)
+target_link_libraries(tree PUBLIC cgraph gvc)
 
-add_executable(main main.cpp ../inc/AVL_Tree.hpp)
-
-target_include_directories(main PUBLIC ../inc/)
-
+target_include_directories(tree PUBLIC ../inc/)
