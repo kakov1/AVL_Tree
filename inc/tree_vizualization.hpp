@@ -44,7 +44,7 @@ template<typename KeyT>
 void vizualize_tree(const SearchTree::SearchTree<KeyT>& tree,
                     const std::string gv_file_name = "tree") {
 
-    if (tree.get_size() > 20) {
+    if (tree.root_->height_ > 7) {
         std::cout << "Node is too big for vizualization" << std::endl;
         return;
     } 

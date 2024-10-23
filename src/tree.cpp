@@ -8,7 +8,7 @@ int main() {
 
     std::cout << read_and_process<SearchTree::SearchTree<int>, int>(tree);
 
-    vizualize_tree(tree);
+    //vizualize_tree(tree);
   
     return 0;
 }
