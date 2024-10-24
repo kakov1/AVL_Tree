@@ -9,17 +9,21 @@
 bool save_tree_png(std::string file_name){
     GVC_t *gvc;
     Agraph_t *g;
-    FILE *fp;
+    FILE *fp, *fw;
 
     gvc = gvContext();
     fp = fopen((file_name + ".gv").c_str(), "r");
+    fw = fopen((file_name + ".png").c_str(), "w");
     g = agread(fp, 0);
 
     gvLayout(gvc, g, "dot");
-    gvRender(gvc, g, "png", fopen((file_name + ".png").c_str(), "w"));
+    gvRender(gvc, g, "png", fw);
 
     gvFreeLayout(gvc, g);
     agclose(g);
+
+    fclose(fw);
+    fclose(fp);
 
     return gvFreeContext(gvc);
 }

@@ -2,6 +2,7 @@
 #include "tree_vizualization.hpp"
 #include "read_and_process.hpp"
 #include <iostream>
+#include <chrono>
 
 int main() {
     SearchTree::SearchTree<int> tree;
@@ -10,7 +11,7 @@ int main() {
 
     SearchTree::SearchTree<int> tree_{tree}; 
 
-    //vizualize_tree(tree);
+    vizualize_tree(tree);
     //vizualize_tree(tree_, "tree_copy");
   
     return 0;
