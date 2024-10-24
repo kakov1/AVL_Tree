@@ -6,9 +6,9 @@
 #include <string>
 #include <iostream>
 
-bool save_tree_png(std::string file_name){
-    GVC_t *gvc;
-    Agraph_t *g;
+bool save_tree_png(std::string file_name) {
+    GVC_t* gvc;
+    Agraph_t* g;
     FILE *fp, *fw;
 
     gvc = gvContext();
@@ -28,31 +28,34 @@ bool save_tree_png(std::string file_name){
     return gvFreeContext(gvc);
 }
 
-template<typename NodePtr>
-void vizualize_node(const NodePtr node, std::ofstream &dot_file) {
-    if (node == nullptr) return;
+template <typename NodePtr>
+void vizualize_node(const NodePtr node, std::ofstream& dot_file) {
+    if (node == nullptr)
+        return;
 
     if (node->left_ != nullptr) {
-        dot_file << "   " << node->key_ << " -> " << node->left_->key_ << ";" << std::endl;
+        dot_file << "   " << node->key_ << " -> " << node->left_->key_ << ";"
+                 << std::endl;
     }
 
     if (node->right_ != nullptr) {
-        dot_file << "   " << node->key_ << " -> " << node->right_->key_ << ";" << std::endl;
+        dot_file << "   " << node->key_ << " -> " << node->right_->key_ << ";"
+                 << std::endl;
     }
-    
+
     vizualize_node(node->left_, dot_file);
     vizualize_node(node->right_, dot_file);
 }
 
-template<typename KeyT>
+template <typename KeyT>
 void vizualize_tree(const SearchTree::SearchTree<KeyT>& tree,
                     const std::string gv_file_name = "tree") {
 
     if (tree.get_root()->height_ > 7) {
         std::cout << "Node is too big for vizualization" << std::endl;
         return;
-    } 
-    
+    }
+
     std::string gv_file_path = gv_file_name + ".gv";
     std::ofstream gv_file;
     gv_file.open(gv_file_path);
@@ -67,6 +70,6 @@ void vizualize_tree(const SearchTree::SearchTree<KeyT>& tree,
     gv_file << "}" << std::endl;
 
     save_tree_png(gv_file_name);
- 
+
     gv_file.close();
 }
