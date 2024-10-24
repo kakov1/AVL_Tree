@@ -44,7 +44,7 @@ template<typename KeyT>
 void vizualize_tree(const SearchTree::SearchTree<KeyT>& tree,
                     const std::string gv_file_name = "tree") {
 
-    if (tree.root_->height_ > 7) {
+    if (tree.get_root()->height_ > 7) {
         std::cout << "Node is too big for vizualization" << std::endl;
         return;
     } 
@@ -53,12 +53,12 @@ void vizualize_tree(const SearchTree::SearchTree<KeyT>& tree,
     std::ofstream gv_file;
     gv_file.open(gv_file_path);
 
-    auto left_child = tree.root_->left_;
-    auto right_child = tree.root_->right_;
+    auto left_child = tree.get_root()->left_;
+    auto right_child = tree.get_root()->right_;
 
     gv_file << "digraph SearchTree {" << std::endl;
 
-    vizualize_node(tree.root_, gv_file);
+    vizualize_node(tree.get_root(), gv_file);
 
     gv_file << "}" << std::endl;
 

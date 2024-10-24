@@ -5,7 +5,7 @@
 #include <cassert>
 #include <list>
 #include <iostream>
-#include <stack>
+#include <deque>
 
 namespace SearchTree {
     template <typename KeyT, typename Comp = std::less<KeyT>>
@@ -23,6 +23,7 @@ namespace SearchTree {
                     ~Node() = default;
             };
 
+            Node* root_ = nullptr;
             Comp comp_;
 
             int get_height(Node* node) {
@@ -157,10 +158,81 @@ namespace SearchTree {
                 return balance(node);
             }
 
-        public:
-            Node* root_ = nullptr;
+            size_t distance(Node* node, KeyT left_border,
+                             KeyT right_border) const {
+                std::deque<Node*> queue;
+                queue.push_front(node);
 
+                int result = 0;
+
+                while (!queue.empty()) {
+                    Node* cur_node = queue.back();
+                    queue.pop_back();
+
+                    if (cur_node->key_ <= right_border && cur_node->key_ >= left_border) {
+                        result++;
+                        if (cur_node->left_ != nullptr) {
+                            queue.push_front(cur_node->left_);
+                        }
+
+                        if (cur_node->right_ != nullptr) {
+                            queue.push_front(cur_node->right_);
+                        }
+                    }
+
+                    else if (cur_node->key_ < left_border && cur_node->right_) {
+                        queue.push_front(cur_node->right_);
+                    }
+
+                    else if (cur_node->key_ > right_border && cur_node->left_) {
+                        queue.push_front(cur_node->left_);
+                    }
+                }
+
+                return result;
+            }
+            
+            void breadth_first_search(Node* node, void (SearchTree::*interact_with_node)(Node*)) {
+                Node* cur_node = node;
+                std::deque<Node*> queue;
+                queue.push_front(node);
+
+                while (!queue.empty()) {
+                    if (cur_node->right_ != nullptr) {
+                        queue.push_front(cur_node->right_);
+                    }
+
+                    if (cur_node->left_ != nullptr) {
+                        queue.push_front(cur_node->left_);
+                    }
+
+                    this->*interact_with_node(cur_node);
+                    queue.pop_back();
+                    
+                    cur_node = queue.back();
+                }
+            }
+
+            void delete_node(Node* node) {
+                delete node;
+            }
+
+            void insert_node(Node* node) {
+                insert(node->key_);
+            }
+
+        public:
             SearchTree() = default;
+
+            SearchTree(const SearchTree& tree) {
+                breadth_first_search(tree.root_, &SearchTree::insert_node);
+            }
+
+            ~SearchTree() {
+                breadth_first_search(root_, &SearchTree::delete_node);
+            }
+
+            Node* get_root() const { return root_; }
 
             Node* create_node(KeyT key, Node* parent) {
                 Node* new_node = new Node(key);
@@ -313,30 +385,7 @@ namespace SearchTree {
 
             size_t range_query(KeyT left_border, KeyT right_border) const {
 
-                return distance(root_, left_border,
-                                right_border);
-            }
-
-            size_t distance(Node* node, KeyT left_border,
-                             KeyT right_border) const {
-
-                if (node == nullptr) {
-                    return 0;
-                }
-
-                if (node->key_ <= right_border && node->key_ >= left_border) {
-                    return 1 +
-                           distance(node->left_, left_border, right_border) +
-                           distance(node->right_, left_border, right_border);
-                }
-
-                else if (node->key_ < left_border) {
-                    return distance(node->right_, left_border, right_border);
-                }
-
-                else {
-                    return distance(node->left_, left_border, right_border);
-                }
+                return distance(root_, left_border, right_border);
             }
     };
 }
