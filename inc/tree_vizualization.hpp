@@ -50,6 +50,7 @@ void vizualize_node(const NodePtr node, std::ofstream& dot_file) {
 template <typename KeyT>
 void vizualize_tree(const SearchTree::SearchTree<KeyT>& tree,
                     const std::string gv_file_name = "tree") {
+    if (tree.get_root() == nullptr) return;
 
     if (tree.get_root()->height_ > 7) {
         std::cout << "Node is too big for vizualization" << std::endl;
