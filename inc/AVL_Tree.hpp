@@ -237,7 +237,7 @@ namespace SearchTree {
 
             SearchTree& operator=(const SearchTree& tree) {
                 if (this != &tree) {
-                    std::swap(*this, tree);
+                    *this = tree;
                 }
 
                 return *this;
@@ -245,8 +245,7 @@ namespace SearchTree {
 
             SearchTree& operator=(SearchTree&& tree) {
                 if (this != &tree) {
-                    std::swap(root_, tree.root_);
-                    std::swap(size_, tree.size_);
+                    std::swap(*this, tree);
                 }
 
                 return *this;
