@@ -1,0 +1,17 @@
+#!/bin/bash
+
+while true; do
+    echo -e "17\n1000\n100" | python3 test_generate.py
+
+    for i in {17..1016}; do
+
+        echo "${i}test:";
+        result="$(../build/src/tree < ./tests/${i}test.txt)";
+
+        if [ -z "$result" ]; then
+            exit
+        fi
+
+        echo "$result";
+    done
+done

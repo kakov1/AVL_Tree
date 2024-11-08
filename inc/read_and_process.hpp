@@ -59,11 +59,12 @@ std::string read_and_process(KeysStorage& keys) {
         else if (request == "q") {
             std::cin >> left_border >> right_border;
             if (comp_(right_border, left_border))
-                continue;
-            result +=
-                std::to_string(RangeQuery<KeysStorage, KeyT>::get_range_query(
-                    keys, left_border, right_border)) +
-                " ";
+                result += "0 ";
+            else
+                result += std::to_string(
+                              RangeQuery<KeysStorage, KeyT>::get_range_query(
+                                  keys, left_border, right_border)) +
+                          " ";
         }
     }
 

@@ -417,6 +417,8 @@ namespace SearchTree {
             }
 
             size_t range_query(KeyT left_border, KeyT right_border) const {
+                if (root_ == nullptr) return 0;
+
                 Node* left_border_ptr = upper_bound(left_border);
                 Node* right_border_ptr = lower_bound(right_border);
 

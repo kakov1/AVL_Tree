@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for i in {1..16}; do
+    echo "$(../build/src/set < ./tests/${i}test.txt > ./tests/${i}answer.txt)";
+done
