@@ -3,6 +3,7 @@
 # Клонирование репозитория
 ```
 git clone https://github.com/kakov1/AVL_Tree.git
+cd AVL_Tree/
 ```
 # Настройка виртуального окружения
 ```
