@@ -44,7 +44,7 @@ class RangeQuery<SearchTree::SearchTree<KeyT>, KeyT> {
 template <typename KeysStorage, typename KeyT, typename Comp = std::less<KeyT>>
 std::string read_and_process(KeysStorage& keys) {
     std::string result;
-    Comp comp_;
+    Comp is_less;
 
     std::string request;
     KeyT key;
@@ -58,8 +58,9 @@ std::string read_and_process(KeysStorage& keys) {
 
         else if (request == "q") {
             std::cin >> left_border >> right_border;
-            if (comp_(right_border, left_border))
+            if (!is_less(left_border, right_border)) {
                 result += "0 ";
+            }
             else
                 result += std::to_string(
                               RangeQuery<KeysStorage, KeyT>::get_range_query(

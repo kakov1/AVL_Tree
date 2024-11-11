@@ -9,6 +9,6 @@ for i in range(nodes_number):
     number = randint(1, max_number)
     while number in numbers:
         number = randint(1, max_number)
-    test_file.write(f"k {randint(1, max_number)} ")
+    test_file.write(f"k {randint(-max_number, max_number)} ")
     numbers.append(number)
 test_file.close() 
