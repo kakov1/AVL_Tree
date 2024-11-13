@@ -6,9 +6,9 @@
 #include <iostream>
 
 namespace SearchTree {
-    template <typename KeyT, typename is_less = std::less<KeyT>,
-              typename is_equal = std::equal_to<KeyT>,
-              typename is_bigger = std::greater<KeyT>>
+    template <typename KeyT, typename is_less_keys = std::less<KeyT>,
+              typename is_equal_keys = std::equal_to<KeyT>,
+              typename is_bigger_keys = std::greater<KeyT>>
     class SearchTree {
         private:
             class Node;
@@ -142,8 +142,8 @@ namespace SearchTree {
                 size_t rank = 0;
 
                 while (node != nullptr) {
-                    if (is_less()(node->key_, key) ||
-                        is_equal()(node->key_, key)) {
+                    if (is_less_keys()(node->key_, key) ||
+                        is_equal_keys()(node->key_, key)) {
                         rank += 1 + get_size(node->left_);
                         node = node->right_;
                     }
@@ -169,7 +169,7 @@ namespace SearchTree {
                 Node* node_copy = node;
 
                 while (true) {
-                    if (is_less()(key, node->key_)) {
+                    if (is_less_keys()(key, node->key_)) {
                         if (node->left_ == nullptr) {
                             node->left_ = create_node(key, node);
                             break;
@@ -213,10 +213,20 @@ namespace SearchTree {
                     }
 
                     (this->*interact_with_node)(cur_node);
+
                     queue.pop_back();
 
                     cur_node = queue.back();
                 }
+            }
+
+            Node* create_node(KeyT key, Node* parent) const {
+                Node* new_node = new Node(key);
+                new_node->parent_ = parent;
+                new_node->size_++;
+                new_node->height_++;
+
+                return new_node;
             }
 
             void delete_node(Node* node) { delete node; }
@@ -260,15 +270,6 @@ namespace SearchTree {
 
             size_t get_size() const { return size_; }
 
-            Node* create_node(KeyT key, Node* parent) const {
-                Node* new_node = new Node(key);
-                new_node->parent_ = parent;
-                new_node->size_++;
-                new_node->height_++;
-
-                return new_node;
-            }
-
             void insert(KeyT key) {
                 if (search(root_, key) != nullptr)
                     return;
@@ -278,8 +279,8 @@ namespace SearchTree {
             }
 
             Node* search(Node* node, KeyT key) const {
-                while (node != nullptr && !is_equal()(key, node->key_)) {
-                    if (is_less()(key, node->key_)) {
+                while (node != nullptr && !is_equal_keys()(key, node->key_)) {
+                    if (is_less_keys()(key, node->key_)) {
                         node = node->left_;
                     }
                     else {
@@ -290,25 +291,27 @@ namespace SearchTree {
                 return node;
             }
 
-            Node* min(Node* node) const {
-                assert(node != nullptr);
+            Node* search(KeyT key) const { return search(root_, key); }
 
-                while (node->left_ != nullptr) {
+            Node* min(Node* node) const {
+                while (node != nullptr && node->left_ != nullptr) {
                     node = node->left_;
                 }
 
                 return node;
             }
 
-            Node* max(Node* node) const {
-                assert(node != nullptr);
+            Node* min() const { return min(root_); }
 
-                while (node->right_ != nullptr) {
+            Node* max(Node* node) const {
+                while (node != nullptr && node->right_ != nullptr) {
                     node = node->right_;
                 }
 
                 return node;
             }
+
+            Node* max() const { return max(root_); }
 
             Node* next(Node* node) const {
                 assert(node != nullptr);
@@ -350,13 +353,13 @@ namespace SearchTree {
                 Node* cur_node = root_;
                 Node* max_node = min(root_);
 
-                if (is_bigger()(cur_node->key_, max_node->key_) &&
-                    is_less()(cur_node->key_, key)) {
+                if (is_bigger_keys()(cur_node->key_, max_node->key_) &&
+                    is_less_keys()(cur_node->key_, key)) {
                     max_node = cur_node;
                 }
 
                 while (true) {
-                    if (is_less()(key, cur_node->key_)) {
+                    if (is_less_keys()(key, cur_node->key_)) {
                         if (cur_node->left_ == nullptr)
                             break;
                         cur_node = cur_node->left_;
@@ -367,13 +370,13 @@ namespace SearchTree {
                         cur_node = cur_node->right_;
                     }
 
-                    if (is_bigger()(cur_node->key_, max_node->key_) &&
-                        is_less()(cur_node->key_, key)) {
+                    if (is_bigger_keys()(cur_node->key_, max_node->key_) &&
+                        is_less_keys()(cur_node->key_, key)) {
                         max_node = cur_node;
                     }
                 }
 
-                if (is_less()(key, max_node->key_))
+                if (is_less_keys()(key, max_node->key_))
                     return nullptr;
 
                 return max_node;
@@ -387,13 +390,13 @@ namespace SearchTree {
                 Node* cur_node = root_;
                 Node* min_node = max(root_);
 
-                if (is_less()(cur_node->key_, min_node->key_) &&
-                    is_bigger()(cur_node->key_, key)) {
+                if (is_less_keys()(cur_node->key_, min_node->key_) &&
+                    is_bigger_keys()(cur_node->key_, key)) {
                     min_node = cur_node;
                 }
 
                 while (cur_node != nullptr) {
-                    if (is_less()(key, cur_node->key_)) {
+                    if (is_less_keys()(key, cur_node->key_)) {
                         if (cur_node->left_ == nullptr)
                             break;
                         cur_node = cur_node->left_;
@@ -404,20 +407,21 @@ namespace SearchTree {
                         cur_node = cur_node->right_;
                     }
 
-                    if (is_less()(cur_node->key_, min_node->key_) &&
-                        is_bigger()(cur_node->key_, key)) {
+                    if (is_less_keys()(cur_node->key_, min_node->key_) &&
+                        is_bigger_keys()(cur_node->key_, key)) {
                         min_node = cur_node;
                     }
                 }
 
-                if (!is_less()(key, min_node->key_))
+                if (!is_less_keys()(key, min_node->key_))
                     return nullptr;
 
                 return min_node;
             }
 
             size_t range_query(KeyT left_border, KeyT right_border) const {
-                if (root_ == nullptr) return 0;
+                if (root_ == nullptr)
+                    return 0;
 
                 Node* left_border_ptr = upper_bound(left_border);
                 Node* right_border_ptr = lower_bound(right_border);
@@ -427,12 +431,68 @@ namespace SearchTree {
                     return 0;
                 }
 
-                if (is_bigger()(left_border_ptr->key_,
+                if (is_bigger_keys()(left_border_ptr->key_,
                                 right_border_ptr->key_)) {
                     return 0;
                 }
 
                 return distance(left_border_ptr->key_, right_border_ptr->key_);
             }
+
+            bool is_equal(const SearchTree& rhs) const {
+                if (!root_ && !rhs.root_) {
+                    return true;
+                }
+
+                if ((!root_ && rhs.root_) || (root_ && !rhs.root_)) {
+                    return false;
+                }
+
+                Node* cur_node1 = root_;
+                Node* cur_node2 = rhs.get_root();
+
+                std::deque<Node*> queue1;
+                std::deque<Node*> queue2;
+
+                queue1.push_front(cur_node1);
+                queue2.push_front(cur_node2);
+
+                while (!queue1.empty() && !queue2.empty()) {
+                    if (!is_equal_keys()(cur_node1->key_, cur_node2->key_)) {
+                        return false;
+                    }
+
+                    if (cur_node1->right_ && cur_node2->right_) {
+                        queue1.push_front(cur_node1->right_);
+                        queue2.push_front(cur_node2->right_);
+                    }
+
+                    else if (cur_node1->right_ || cur_node2->right_) {
+                        return false;
+                    }
+
+                    if (cur_node1->left_ && cur_node2->left_) {
+                        queue1.push_front(cur_node1->left_);
+                        queue2.push_front(cur_node2->left_);
+                    }
+
+                    else if (cur_node1->left_ || cur_node2->left_) {
+                        return false;
+                    }
+
+                    queue1.pop_back();
+                    queue2.pop_back();
+
+                    cur_node1 = queue1.back();
+                    cur_node2 = queue2.back();
+                }
+
+                return true;
+            }
     };
+    
+    template <typename KeyT>
+    bool operator==(const SearchTree<KeyT>& lhs, const SearchTree<KeyT>& rhs) {
+        return lhs.is_equal(rhs);
+    }
 }
