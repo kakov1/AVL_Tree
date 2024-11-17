@@ -199,11 +199,13 @@ namespace SearchTree {
                 if (node == nullptr)
                     return;
 
-                Node* cur_node = node;
+                Node* cur_node;
                 std::deque<Node*> queue;
                 queue.push_front(node);
 
                 while (!queue.empty()) {
+                    cur_node = queue.back();
+
                     if (cur_node->right_ != nullptr) {
                         queue.push_front(cur_node->right_);
                     }
@@ -215,8 +217,6 @@ namespace SearchTree {
                     (this->*interact_with_node)(cur_node);
 
                     queue.pop_back();
-
-                    cur_node = queue.back();
                 }
             }
 

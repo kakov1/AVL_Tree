@@ -160,6 +160,8 @@ TEST(ete_tests, test15) { ASSERT_TRUE(test(15) == get_answer(15)); }
 
 TEST(ete_tests, test16) { ASSERT_TRUE(test(16) == get_answer(16)); }
 
+TEST(ete_tests, test17) { ASSERT_TRUE(test(17) == get_answer(17)); }
+
 int main(int argc, char* argv[]) {
     ::testing::InitGoogleMock(&argc, argv);
     return RUN_ALL_TESTS();
