@@ -233,6 +233,11 @@ namespace SearchTree {
 
             void insert_node(Node* node) { insert(node->key_); }
 
+            void swap(SearchTree& tree) noexcept {
+                std::swap(root_, tree.root_);
+                std::swap(size_, tree.size_);
+            }
+
         public:
             SearchTree() = default;
 
@@ -240,24 +245,21 @@ namespace SearchTree {
                 breadth_first_search(tree.root_, &SearchTree::insert_node);
             }
 
-            SearchTree(SearchTree&& tree) {
-                std::swap(root_, tree.root_);
-                std::swap(size_, tree.size_);
+            SearchTree(SearchTree&& tree) noexcept {
+                swap(tree);
             }
 
             SearchTree& operator=(const SearchTree& tree) {
                 if (this != &tree) {
-                    breadth_first_search(tree.root_, &SearchTree::insert_node);
+                    SearchTree<KeyT> tmp{tree};
+                    swap(tmp);
                 }
 
                 return *this;
             }
 
-            SearchTree& operator=(SearchTree&& tree) {
-                if (this != &tree) {
-                    std::swap(root_, tree.root_);
-                    std::swap(size_, tree.size_);
-                }
+            SearchTree& operator=(SearchTree&& tree) noexcept {
+                swap(tree);
 
                 return *this;
             }

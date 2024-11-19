@@ -91,6 +91,11 @@ TEST_F(TestTree, TestConstructors) {
     SearchTree::SearchTree<int> tree_copy2;
     SearchTree::SearchTree<int> tree_copy3;
 
+    tree = tree;
+    tree = std::move(tree);
+
+    ASSERT_TRUE(tree == tree_copy1);
+
     for (int i = 13; i < 34; ++i) {
         tree_copy3.insert(i);
     }
