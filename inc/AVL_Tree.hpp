@@ -525,6 +525,6 @@ namespace SearchTree {
 		}
 
 		SearchTreeIt begin() const { return SearchTreeIt{min(root_)}; }
-		SearchTreeIt end() { return SearchTreeIt{nullptr}; }
+		SearchTreeIt end() const { return SearchTreeIt{nullptr}; }
 	};
 }
