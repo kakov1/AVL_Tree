@@ -6,70 +6,42 @@
 #include <set>
 #include <iterator>
 
-template <typename KeysStorage, typename KeyT>
-int range_query(const KeysStorage& keys, KeyT left_board, KeyT right_board) {
-    using KeyIt = KeysStorage::iterator;
-    KeyIt start = keys.lower_bound(left_board);
-    KeyIt final = keys.upper_bound(right_board);
-    return std::distance(start, final);
-}
-
-template <typename KeysStorage, typename KeyT>
-class RangeQuery {
-    public:
-        static int get_range_query(const KeysStorage& keys, KeyT left_board,
-                                   KeyT right_board) {
-            return range_query(keys, left_board, right_board);
-        }
-};
-
-template <typename KeyT>
-class RangeQuery<std::set<KeyT>, KeyT> {
-    public:
-        static int get_range_query(const std::set<KeyT>& keys, KeyT left_board,
-                                   KeyT right_board) {
-            return range_query(keys, left_board, right_board);
-        }
-};
-
-template <typename KeyT>
-class RangeQuery<SearchTree::SearchTree<KeyT>, KeyT> {
-    public:
-        static int get_range_query(const SearchTree::SearchTree<KeyT>& keys,
-                                   KeyT left_board, KeyT right_board) {
-            return keys.range_query(left_board, right_board);
-        }
-};
-
 template <typename KeysStorage, typename KeyT, typename Comp = std::less<KeyT>>
 std::string read_and_process(KeysStorage& keys) {
-    std::string result;
-    Comp is_less;
+	std::string result;
+	Comp is_less;
 
-    std::string request;
-    KeyT key;
-    KeyT left_border, right_border;
+	std::string request;
+	KeyT key;
+	KeyT left_border, right_border;
 
-    while (std::cin >> request) {
-        if (request == "k") {
-            std::cin >> key;
-            keys.insert(key);
-        }
+	while (std::cin >> request) {
+		if (request == "k") {
+			std::cin >> key;
+			keys.insert(key);
+		}
 
-        else if (request == "q") {
-            std::cin >> left_border >> right_border;
-            if (!is_less(left_border, right_border)) {
-                result += "0 ";
-            }
-            else
-                result += std::to_string(
-                              RangeQuery<KeysStorage, KeyT>::get_range_query(
-                                  keys, left_border, right_border)) +
-                          " ";
-        }
-    }
+		else if (request == "q") {
+			std::cin >> left_border >> right_border;
+			if (!is_less(left_border, right_border)) {
+				result += "0 ";
+				continue;
+			}
 
-    result += "\n";
+			auto start_it = keys.upper_bound(left_border);
+			auto final_it = keys.lower_bound(right_border);
 
-    return result;
+			if (start_it == keys.end() ||
+				final_it == keys.end()) {
+				result += "0 ";
+				continue;
+			}
+
+			result += std::to_string(std::distance(start_it, final_it)) + " ";
+		}
+	}
+
+	result += "\n";
+
+	return result;
 }

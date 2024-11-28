@@ -8,129 +8,158 @@
 #include <vector>
 
 class TestTree : public testing::Test {
-    protected:
-        SearchTree::SearchTree<int> tree;
+	protected:
 
-        TestTree() {
-            for (int i = 0; i < 100; ++i) {
-                if (i != 50)
-                    tree.insert(i);
-            }
-        }
+	SearchTree::SearchTree<int> tree;
+
+	TestTree() {
+		for (int i = 0; i < 100; ++i) {
+			if (i != 50)
+				tree.insert(i);
+		}
+	}
 };
 
 const int OPEN_ERROR = -1;
 
 std::string get_answer(int test_number) {
-    std::string answer;
+	std::string answer;
 
-    std::fstream answer_file("../../tests/tests/" +
-                             std::to_string(test_number) + "answer.txt");
+	std::ifstream answer_file("../../tests/tests/" +
+							 std::to_string(test_number) + "answer.txt");
 
-    if (answer_file.fail()) {
-        throw OPEN_ERROR;
-    }
+	answer_file.exceptions(std::ifstream::badbit);
 
-    std::string buf;
+	std::string buf;
 
-    while (answer_file >> buf) {
-        answer += (buf + " ");
-    }
+	while (answer_file >> buf) {
+		answer += (buf + " ");
+	}
 
-    return answer + "\n";
+	return answer + "\n";
 }
 
 std::string test(int test_number) {
-    std::fstream test_file("../../tests/tests/" + std::to_string(test_number) +
-                           "test.txt");
+	std::ifstream test_file("../../tests/tests/" + std::to_string(test_number) +
+							"test.txt");
 
-    if (test_file.fail()) {
-        throw OPEN_ERROR;
-    }
+	test_file.exceptions(std::ifstream::badbit);
 
-    std::cin.rdbuf(test_file.rdbuf());
+	SearchTree::SearchTree<int> tree;
 
-    SearchTree::SearchTree<int> tree;
+	std::string result, request;
 
-    return read_and_process<SearchTree::SearchTree<int>, int>(tree);
+	int key, left_border, right_border;
+
+	while (test_file >> request) {
+		if (request == "k") {
+			test_file >> key;
+			tree.insert(key);
+		}
+
+		else if (request == "q") {
+			test_file >> left_border >> right_border;
+			if (left_border >= right_border) {
+				result += "0 ";
+				continue;
+			}
+
+			auto start_it = tree.upper_bound(left_border);
+			auto final_it = tree.lower_bound(right_border);
+
+			if (start_it == tree.end() || final_it == tree.end()) {
+				result += "0 ";
+				continue;
+			}
+
+			result += std::to_string(std::distance(start_it, final_it)) + " ";
+		}
+	}
+
+	result += "\n";
+
+	return result;
 }
 
 TEST_F(TestTree, TestSearch) {
-    ASSERT_TRUE(tree.search(100) == nullptr);
-    ASSERT_TRUE(tree.search(99) != nullptr);
+	ASSERT_TRUE(tree.search(100) == tree.end());
+	ASSERT_TRUE(tree.search(99) != tree.end());
 }
 
 TEST_F(TestTree, TestSpecialNodes) {
-    ASSERT_TRUE(tree.min()->key_ == 0);
-    ASSERT_TRUE(tree.max()->key_ == 99);
+	ASSERT_TRUE(tree.min(tree.begin())->key_ == 0);
+	ASSERT_TRUE(tree.max(tree.begin())->key_ == 99);
 
-    ASSERT_TRUE(tree.next(tree.search(43)) == tree.search(44));
-    ASSERT_TRUE(tree.prev(tree.search(43)) == tree.search(42));
+	ASSERT_TRUE(tree.next(tree.search(43))->key_ == tree.search(44)->key_);
+	ASSERT_TRUE(tree.prev(tree.search(43))->key_ == tree.search(42)->key_);
 }
 
 TEST_F(TestTree, TestBounds) {
-    ASSERT_TRUE(tree.lower_bound(101) == tree.search(99));
-    ASSERT_TRUE(tree.upper_bound(101) == nullptr);
+	ASSERT_TRUE(tree.lower_bound(101) == tree.search(99));
+	ASSERT_TRUE(tree.upper_bound(101) == tree.end());
 
-    ASSERT_TRUE(tree.upper_bound(-1) == tree.search(0));
-    ASSERT_TRUE(tree.lower_bound(-1) == nullptr);
+	ASSERT_TRUE(tree.upper_bound(-1) == tree.search(0));
+	ASSERT_TRUE(tree.lower_bound(-1) == tree.end());
 
-    ASSERT_TRUE(tree.upper_bound(50) == tree.search(51));
-    ASSERT_TRUE(tree.lower_bound(50) == tree.search(49));
+	ASSERT_TRUE(tree.upper_bound(50) == tree.search(51));
+	ASSERT_TRUE(tree.lower_bound(50) == tree.search(49));
 }
 
 TEST_F(TestTree, TestRangeQueries) {
-    ASSERT_TRUE(tree.range_query(0, 99) == 99);
-    ASSERT_TRUE(tree.range_query(-1, 100) == 99);
-    ASSERT_TRUE(tree.range_query(-1, 10) == 11);
-    ASSERT_TRUE(tree.range_query(89, 100) == 11);
+	ASSERT_TRUE(std::distance(tree.upper_bound(0), tree.lower_bound(99)) == 99);
+	ASSERT_TRUE(std::distance(tree.upper_bound(-1), tree.lower_bound(100)) ==
+				99);
+	ASSERT_TRUE(std::distance(tree.upper_bound(-1), tree.lower_bound(10)) ==
+				11);
+	ASSERT_TRUE(std::distance(tree.upper_bound(89), tree.lower_bound(100)) ==
+				11);
 }
 
 TEST_F(TestTree, TestConstructors) {
-    SearchTree::SearchTree<int> tree_copy1 = tree;
-    SearchTree::SearchTree<int> tree_copy2;
-    SearchTree::SearchTree<int> tree_copy3;
+	SearchTree::SearchTree<int> tree_copy1 = tree;
+	SearchTree::SearchTree<int> tree_copy2;
+	SearchTree::SearchTree<int> tree_copy3;
 
-    tree = tree;
-    tree = std::move(tree);
+	tree = tree;
+	tree = std::move(tree);
 
-    ASSERT_TRUE(tree == tree_copy1);
+	ASSERT_TRUE(tree == tree_copy1);
 
-    for (int i = 13; i < 34; ++i) {
-        tree_copy3.insert(i);
-    }
+	for (int i = 13; i < 34; ++i) {
+		tree_copy3.insert(i);
+	}
 
-    ASSERT_TRUE(tree == tree_copy1);
-    ASSERT_FALSE(tree == tree_copy2);
-    ASSERT_FALSE(tree == tree_copy3);
+	ASSERT_TRUE(tree == tree_copy1);
+	ASSERT_FALSE(tree == tree_copy2);
+	ASSERT_FALSE(tree == tree_copy3);
 
-    SearchTree::SearchTree<int> tree_copy4 = std::move(tree_copy1);
-    SearchTree::SearchTree<int> tree_copy5 = std::move(tree_copy3);
+	SearchTree::SearchTree<int> tree_copy4 = std::move(tree_copy1);
+	SearchTree::SearchTree<int> tree_copy5 = std::move(tree_copy3);
 
-    ASSERT_TRUE(tree == tree_copy4);
-    ASSERT_FALSE(tree == tree_copy5);
+	ASSERT_TRUE(tree == tree_copy4);
+	ASSERT_FALSE(tree == tree_copy5);
 }
 
 TEST_F(TestTree, TestAssign) {
-    SearchTree::SearchTree<int> tree_copy1;
-    SearchTree::SearchTree<int> tree2;
-    SearchTree::SearchTree<int> tree_copy2;
+	SearchTree::SearchTree<int> tree_copy1;
+	SearchTree::SearchTree<int> tree2;
+	SearchTree::SearchTree<int> tree_copy2;
 
-    for (int i = 13; i < 34; ++i) {
-        tree2.insert(i);
-    }
+	for (int i = 13; i < 34; ++i) {
+		tree2.insert(i);
+	}
 
-    tree_copy1 = tree;
-    tree_copy2 = tree2;
+	tree_copy1 = tree;
+	tree_copy2 = tree2;
 
-    ASSERT_TRUE(tree == tree_copy1);
-    ASSERT_FALSE(tree == tree_copy2);
+	ASSERT_TRUE(tree == tree_copy1);
+	ASSERT_FALSE(tree == tree_copy2);
 
-    SearchTree::SearchTree<int> tree_copy3 = std::move(tree_copy1);
-    SearchTree::SearchTree<int> tree_copy4 = std::move(tree_copy2);
+	SearchTree::SearchTree<int> tree_copy3 = std::move(tree_copy1);
+	SearchTree::SearchTree<int> tree_copy4 = std::move(tree_copy2);
 
-    ASSERT_TRUE(tree == tree_copy3);
-    ASSERT_FALSE(tree == tree_copy4);
+	ASSERT_TRUE(tree == tree_copy3);
+	ASSERT_FALSE(tree == tree_copy4);
 }
 
 TEST(ete_tests, test1) { ASSERT_TRUE(test(1) == get_answer(1)); }
@@ -168,6 +197,6 @@ TEST(ete_tests, test16) { ASSERT_TRUE(test(16) == get_answer(16)); }
 TEST(ete_tests, test17) { ASSERT_TRUE(test(17) == get_answer(17)); }
 
 int main(int argc, char* argv[]) {
-    ::testing::InitGoogleMock(&argc, argv);
-    return RUN_ALL_TESTS();
+	::testing::InitGoogleMock(&argc, argv);
+	return RUN_ALL_TESTS();
 }
