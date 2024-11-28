@@ -438,7 +438,7 @@ namespace SearchTree {
 			if (!root_) {
 				return end();
 			}
-			
+
 			if (search(key) != end()) {
 				return search(key);
 			}
@@ -525,6 +525,6 @@ namespace SearchTree {
 		}
 
 		SearchTreeIt begin() const { return SearchTreeIt{min(root_)}; }
-		static SearchTreeIt end() { return SearchTreeIt{nullptr}; }
+		SearchTreeIt end() { return SearchTreeIt{nullptr}; }
 	};
 }
