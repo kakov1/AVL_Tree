@@ -87,11 +87,12 @@ TEST_F(TestTree, TestSearch) {
 }
 
 TEST_F(TestTree, TestSpecialNodes) {
-	ASSERT_TRUE(tree.min(tree.begin())->key_ == 0);
-	ASSERT_TRUE(tree.max(tree.begin())->key_ == 99);
+	std::cout << *tree.begin()<<std::endl;
+	ASSERT_TRUE(*tree.min(tree.begin()) == 0);
+	ASSERT_TRUE(*tree.max(tree.begin()) == 99);
 
-	ASSERT_TRUE(tree.next(tree.search(43))->key_ == tree.search(44)->key_);
-	ASSERT_TRUE(tree.prev(tree.search(43))->key_ == tree.search(42)->key_);
+	ASSERT_TRUE(*tree.next(tree.search(43)) == *tree.search(44));
+	ASSERT_TRUE(*tree.prev(tree.search(43)) == *tree.search(42));
 }
 
 TEST_F(TestTree, TestBounds) {

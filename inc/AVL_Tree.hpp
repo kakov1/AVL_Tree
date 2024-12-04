@@ -5,48 +5,50 @@
 #include <deque>
 #include <iostream>
 #include <memory>
+#include <vector>
 
 namespace SearchTree {
 	template <typename KeyT, typename Comp = std::less<KeyT>>
 	class SearchTree final {
-		public:
+		private:
 
 		struct Node;
 
-		using ParentPtr = std::weak_ptr<Node>;
-		using NodePtr = std::shared_ptr<Node>;
+		using NodePtr = std::unique_ptr<Node>;
 
-		NodePtr root_ = nullptr;
+		Node* root_ = nullptr;
 		size_t size_ = 0;
+		Comp comp_;
+		std::vector<NodePtr> nodes;
 
 		struct Node final {
 			private:
 
-			size_t get_size(NodePtr node) const {
+			size_t get_size(Node* node) const {
 				return node ? node->size_ : 0;
 			}
 
 			public:
 
 			KeyT key_;
-			ParentPtr parent_;
-			NodePtr right_ = nullptr, left_ = nullptr;
+			Node* right_;
+			Node* left_;
+			Node* parent_;
 			size_t height_ = 0, size_ = 0;
+			Comp comp_;
 
-			Node() = default;
 			Node(const KeyT& key) : key_(key){};
-			~Node() noexcept = default;
 
 			size_t get_rank() const {
 				size_t rank = get_size(left_);
-				NodePtr node = parent_.lock();
+				Node* node = parent_;
 
 				while (node) {
-					if (Comp()(node->key_, key_)) {
+					if (comp_(node->key_, key_)) {
 						rank += 1 + get_size(node->left_);
 					}
 
-					node = node->parent_.lock();
+					node = node->parent_;
 				}
 
 				return rank;
@@ -64,12 +66,11 @@ namespace SearchTree {
 
 			private:
 
-			NodePtr current_ = nullptr;
+			Node* current_;
 
 			public:
 
-			SearchTreeIt() = default;
-			explicit SearchTreeIt(const NodePtr& node) : current_{node} {}
+			SearchTreeIt(Node* node = nullptr) : current_{node} {}
 
 			SearchTreeIt& operator++() {
 				current_ = SearchTree::next(current_);
@@ -113,38 +114,36 @@ namespace SearchTree {
 				return !(*this == rhs);
 			}
 
-			const NodePtr& operator*() const { return current_; }
-
-			const NodePtr& operator->() const { return current_; }
+			KeyT& operator*() const { return current_->key_; }
 		};
 
-		size_t get_height(NodePtr node) const {
+		size_t get_height(Node* node) const {
 			return node ? node->height_ : 0;
 		}
 
-		size_t get_size(NodePtr node) const { return node ? node->size_ : 0; }
+		size_t get_size(Node* node) const { return node ? node->size_ : 0; }
 
-		int calculate_balance_factor(NodePtr node) const {
+		int calculate_balance_factor(Node* node) const {
 			assert(node);
 
 			return get_height(node->left_) - get_height(node->right_);
 		}
 
-		void set_height(NodePtr node) const {
+		void set_height(Node* node) const {
 			int height_left = get_height(node->left_);
 			int height_right = get_height(node->right_);
 			node->height_ =
 				(height_left > height_right ? height_left : height_right) + 1;
 		}
 
-		void set_size(NodePtr node) const {
+		void set_size(Node* node) const {
 			node->size_ = get_size(node->left_) + get_size(node->right_) + 1;
 		}
 
-		void set_parents(NodePtr node, NodePtr child_copy) {
+		void set_parents(Node* node, Node* child_copy) {
 			child_copy->parent_ = node->parent_;
 
-			NodePtr parent = node->parent_.lock();
+			Node* parent = node->parent_;
 
 			if (parent) {
 				if (parent->right_ == node) {
@@ -158,10 +157,10 @@ namespace SearchTree {
 			node->parent_ = child_copy;
 		}
 
-		NodePtr rotate_right(NodePtr node) {
+		Node* rotate_right(Node* node) {
 			assert(node);
 
-			NodePtr left_copy = node->left_;
+			Node* left_copy = node->left_;
 			node->left_ = node->left_->right_;
 			left_copy->right_ = node;
 
@@ -179,11 +178,11 @@ namespace SearchTree {
 			return left_copy;
 		}
 
-		NodePtr rotate_left(NodePtr node) {
+		Node* rotate_left(Node* node) {
 			assert(node);
 			assert(node->right_);
 
-			NodePtr right_copy = node->right_;
+			Node* right_copy = node->right_;
 			node->right_ = node->right_->left_;
 			right_copy->left_ = node;
 
@@ -201,7 +200,7 @@ namespace SearchTree {
 			return right_copy;
 		}
 
-		NodePtr balance(NodePtr node) {
+		Node* balance(Node* node) {
 			assert(node);
 
 			set_height(node);
@@ -222,16 +221,16 @@ namespace SearchTree {
 			return node;
 		}
 
-		NodePtr insert_to_node(NodePtr node, NodePtr parent, KeyT key) {
+		Node* insert_to_node(Node* node, Node* parent, KeyT key) {
 			if (!node) {
 				node = create_node(key, parent);
 				return node;
 			}
 
-			NodePtr node_copy = node;
+			Node* node_copy = node;
 
 			while (node) {
-				if (Comp()(key, node->key_)) {
+				if (comp_(key, node->key_)) {
 					if (!node->left_) {
 						node->left_ = create_node(key, node);
 						break;
@@ -250,25 +249,27 @@ namespace SearchTree {
 
 			while (node != node_copy) {
 				balance(node);
-				node = node->parent_.lock();
+				node = node->parent_;
 			}
 
 			return balance(node);
 		}
 
-		NodePtr create_node(KeyT key, NodePtr parent) const {
-			NodePtr new_node = std::make_shared<Node>(key);
+		Node* create_node(KeyT key, Node* parent) {
+			NodePtr new_node = std::make_unique<Node>(key);
+
 			new_node->parent_ = parent;
 			new_node->size_++;
 			new_node->height_++;
 
-			return new_node;
+			nodes.push_back(std::move(new_node));
+
+			return new_node.get();
 		}
 
-		NodePtr search(NodePtr node, KeyT key) const {
-			while (node &&
-				   (Comp()(key, node->key_) || Comp()(node->key_, key))) {
-				if (Comp()(key, node->key_)) {
+		Node* search(Node* node, KeyT key) const {
+			while (node && (comp_(key, node->key_) || comp_(node->key_, key))) {
+				if (comp_(key, node->key_)) {
 					node = node->left_;
 				}
 				else {
@@ -279,7 +280,7 @@ namespace SearchTree {
 			return node;
 		}
 
-		static NodePtr next(NodePtr node) {
+		static Node* next(Node* node) {
 			if (!node)
 				return node;
 
@@ -287,16 +288,16 @@ namespace SearchTree {
 				return min(node->right_);
 			}
 
-			NodePtr cur_parent = node->parent_.lock();
+			Node* cur_parent = node->parent_;
 			while (cur_parent && cur_parent->left_ != node) {
 				node = cur_parent;
-				cur_parent = cur_parent->parent_.lock();
+				cur_parent = cur_parent->parent_;
 			}
 
 			return cur_parent;
 		}
 
-		static NodePtr prev(NodePtr node) {
+		static Node* prev(Node* node) {
 			if (!node)
 				return node;
 
@@ -304,16 +305,16 @@ namespace SearchTree {
 				return max(node->left_);
 			}
 
-			NodePtr cur_parent = node->parent_.lock();
+			Node* cur_parent = node->parent_;
 			while (cur_parent && cur_parent->right_ != node) {
 				node = cur_parent;
-				cur_parent = cur_parent->parent_.lock();
+				cur_parent = cur_parent->parent_;
 			}
 
 			return cur_parent;
 		}
 
-		static NodePtr min(NodePtr node) {
+		static Node* min(Node* node) {
 			while (node && node->left_) {
 				node = node->left_;
 			}
@@ -321,7 +322,7 @@ namespace SearchTree {
 			return node;
 		}
 
-		static NodePtr max(NodePtr node) {
+		static Node* max(Node* node) {
 			while (node && node->right_) {
 				node = node->right_;
 			}
@@ -336,14 +337,12 @@ namespace SearchTree {
 
 		public:
 
-		using iterator = SearchTreeIt;
-
 		SearchTree() = default;
 
 		SearchTree(const SearchTree& tree) {
 			for (auto start_it = tree.begin(), end_it = tree.end();
 				 start_it != end_it; ++start_it) {
-				insert(start_it->key_);
+				insert(*start_it);
 			}
 		}
 
@@ -364,8 +363,6 @@ namespace SearchTree {
 			return *this;
 		}
 
-		~SearchTree() noexcept = default;
-
 		bool operator==(const SearchTree<KeyT>& rhs) { return is_equal(rhs); }
 
 		void insert(KeyT key) {
@@ -381,11 +378,11 @@ namespace SearchTree {
 		}
 
 		SearchTreeIt next(const SearchTreeIt& it) const {
-			return SearchTreeIt{next(*it)};
+			return SearchTreeIt{next(it)};
 		}
 
 		SearchTreeIt prev(const SearchTreeIt& it) const {
-			return SearchTreeIt{prev(*it)};
+			return SearchTreeIt{prev(it)};
 		}
 
 		SearchTreeIt min(const SearchTreeIt& it) const {
@@ -405,16 +402,16 @@ namespace SearchTree {
 				return search(key);
 			}
 
-			NodePtr cur_node = root_;
-			NodePtr max_node = min(root_);
+			Node* cur_node = root_;
+			Node* max_node = min(root_);
 
-			if (Comp()(max_node->key_, cur_node->key_) &&
-				Comp()(cur_node->key_, key)) {
+			if (comp_(max_node->key_, cur_node->key_) &&
+				comp_(cur_node->key_, key)) {
 				max_node = cur_node;
 			}
 
 			while (cur_node) {
-				if (Comp()(key, cur_node->key_)) {
+				if (comp_(key, cur_node->key_)) {
 					cur_node = cur_node->left_;
 				}
 
@@ -422,13 +419,13 @@ namespace SearchTree {
 					cur_node = cur_node->right_;
 				}
 
-				if (cur_node && Comp()(max_node->key_, cur_node->key_) &&
-					Comp()(cur_node->key_, key)) {
+				if (cur_node && comp_(max_node->key_, cur_node->key_) &&
+					comp_(cur_node->key_, key)) {
 					max_node = cur_node;
 				}
 			}
 
-			if (Comp()(key, max_node->key_))
+			if (comp_(key, max_node->key_))
 				return end();
 
 			return SearchTreeIt{max_node};
@@ -443,16 +440,16 @@ namespace SearchTree {
 				return search(key);
 			}
 
-			NodePtr cur_node = root_;
-			NodePtr min_node = max(root_);
+			Node* cur_node = root_;
+			Node* min_node = max(root_);
 
-			if (Comp()(cur_node->key_, min_node->key_) &&
-				Comp()(key, cur_node->key_)) {
+			if (comp_(cur_node->key_, min_node->key_) &&
+				comp_(key, cur_node->key_)) {
 				min_node = cur_node;
 			}
 
 			while (cur_node) {
-				if (Comp()(key, cur_node->key_)) {
+				if (comp_(key, cur_node->key_)) {
 					cur_node = cur_node->left_;
 				}
 
@@ -460,13 +457,13 @@ namespace SearchTree {
 					cur_node = cur_node->right_;
 				}
 
-				if (cur_node && Comp()(cur_node->key_, min_node->key_) &&
-					Comp()(key, cur_node->key_)) {
+				if (cur_node && comp_(cur_node->key_, min_node->key_) &&
+					comp_(key, cur_node->key_)) {
 					min_node = cur_node;
 				}
 			}
 
-			if (!Comp()(key, min_node->key_))
+			if (!comp_(key, min_node->key_))
 				return end();
 
 			return SearchTreeIt{min_node};
@@ -481,18 +478,18 @@ namespace SearchTree {
 				return false;
 			}
 
-			NodePtr cur_node1 = root_;
-			NodePtr cur_node2 = rhs.root_;
+			Node* cur_node1 = root_;
+			Node* cur_node2 = rhs.root_;
 
-			std::deque<NodePtr> queue1;
-			std::deque<NodePtr> queue2;
+			std::deque<Node*> queue1;
+			std::deque<Node*> queue2;
 
 			queue1.push_front(cur_node1);
 			queue2.push_front(cur_node2);
 
 			while (!queue1.empty() && !queue2.empty()) {
-				if (Comp()(cur_node1->key_, cur_node2->key_) ||
-					Comp()(cur_node2->key_, cur_node1->key_)) {
+				if (comp_(cur_node1->key_, cur_node2->key_) ||
+					comp_(cur_node2->key_, cur_node1->key_)) {
 					return false;
 				}
 
@@ -525,6 +522,6 @@ namespace SearchTree {
 		}
 
 		SearchTreeIt begin() const { return SearchTreeIt{min(root_)}; }
-		SearchTreeIt end() const { return SearchTreeIt{nullptr}; }
+		SearchTreeIt end() const { return SearchTreeIt{}; }
 	};
 }
