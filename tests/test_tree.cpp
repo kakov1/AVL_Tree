@@ -87,7 +87,6 @@ TEST_F(TestTree, TestSearch) {
 }
 
 TEST_F(TestTree, TestSpecialNodes) {
-	std::cout << *tree.begin()<<std::endl;
 	ASSERT_TRUE(*tree.min(tree.begin()) == 0);
 	ASSERT_TRUE(*tree.max(tree.begin()) == 99);
 

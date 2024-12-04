@@ -19,7 +19,7 @@ namespace SearchTree {
 		Node* root_ = nullptr;
 		size_t size_ = 0;
 		Comp comp_;
-		std::vector<NodePtr> nodes;
+		std::vector<NodePtr> nodes_;
 
 		struct Node final {
 			private:
@@ -31,9 +31,9 @@ namespace SearchTree {
 			public:
 
 			KeyT key_;
-			Node* right_;
-			Node* left_;
-			Node* parent_;
+			Node* right_ = nullptr;
+			Node* left_ = nullptr;
+			Node* parent_ = nullptr;
 			size_t height_ = 0, size_ = 0;
 			Comp comp_;
 
@@ -114,7 +114,7 @@ namespace SearchTree {
 				return !(*this == rhs);
 			}
 
-			KeyT& operator*() const { return current_->key_; }
+			const KeyT& operator*() const { return current_->key_; }
 		};
 
 		size_t get_height(Node* node) const {
@@ -221,7 +221,7 @@ namespace SearchTree {
 			return node;
 		}
 
-		Node* insert_to_node(Node* node, Node* parent, KeyT key) {
+		Node* insert_to_node(Node* node, Node* parent, const KeyT& key) {
 			if (!node) {
 				node = create_node(key, parent);
 				return node;
@@ -255,19 +255,21 @@ namespace SearchTree {
 			return balance(node);
 		}
 
-		Node* create_node(KeyT key, Node* parent) {
+		Node* create_node(const KeyT& key, Node* parent) {
 			NodePtr new_node = std::make_unique<Node>(key);
+
+			Node* new_copy = new_node.get();
 
 			new_node->parent_ = parent;
 			new_node->size_++;
 			new_node->height_++;
 
-			nodes.push_back(std::move(new_node));
+			nodes_.push_back(std::move(new_node));
 
-			return new_node.get();
+			return new_copy;
 		}
 
-		Node* search(Node* node, KeyT key) const {
+		Node* search(Node* node, const KeyT& key) const {
 			while (node && (comp_(key, node->key_) || comp_(node->key_, key))) {
 				if (comp_(key, node->key_)) {
 					node = node->left_;
@@ -333,6 +335,7 @@ namespace SearchTree {
 		void swap(SearchTree& tree) noexcept {
 			std::swap(root_, tree.root_);
 			std::swap(size_, tree.size_);
+			std::swap(nodes_, tree.nodes_);
 		}
 
 		public:
@@ -365,7 +368,7 @@ namespace SearchTree {
 
 		bool operator==(const SearchTree<KeyT>& rhs) { return is_equal(rhs); }
 
-		void insert(KeyT key) {
+		void insert(const KeyT& key) {
 			if (search(root_, key))
 				return;
 
@@ -373,16 +376,16 @@ namespace SearchTree {
 			root_ = insert_to_node(root_, nullptr, key);
 		}
 
-		SearchTreeIt search(KeyT key) const {
+		SearchTreeIt search(const KeyT& key) const {
 			return SearchTreeIt{search(root_, key)};
 		}
 
 		SearchTreeIt next(const SearchTreeIt& it) const {
-			return SearchTreeIt{next(it)};
+			return SearchTreeIt{next(search(root_, *it))};
 		}
 
 		SearchTreeIt prev(const SearchTreeIt& it) const {
-			return SearchTreeIt{prev(it)};
+			return SearchTreeIt{prev(search(root_, *it))};
 		}
 
 		SearchTreeIt min(const SearchTreeIt& it) const {
@@ -393,7 +396,7 @@ namespace SearchTree {
 			return SearchTreeIt{max(root_)};
 		}
 
-		SearchTreeIt lower_bound(KeyT key) const {
+		SearchTreeIt lower_bound(const KeyT& key) const {
 			if (!root_) {
 				return end();
 			}
@@ -431,7 +434,7 @@ namespace SearchTree {
 			return SearchTreeIt{max_node};
 		}
 
-		SearchTreeIt upper_bound(KeyT key) const {
+		SearchTreeIt upper_bound(const KeyT& key) const {
 			if (!root_) {
 				return end();
 			}

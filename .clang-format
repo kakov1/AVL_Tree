@@ -2,8 +2,9 @@ BasedOnStyle: LLVM
 
 TabWidth: 4
 IndentWidth: 4
+AccessModifierOffset: 0
 
-UseTab: Never
+UseTab: Always
 
 Language: Cpp
 
@@ -12,15 +13,16 @@ Standard: Cpp11
 PointerAlignment: Left
 
 BreakBeforeBinaryOperators: false
-SeparateDefinitionBlocks: Always
+EmptyLineAfterAccessModifier: Always
+
 SortIncludes: Never
 FixNamespaceComments: false
 NamespaceIndentation: All
-IndentAccessModifiers: true
+IndentAccessModifiers: false
 AlwaysBreakTemplateDeclarations: Yes
 
 BreakBeforeBraces: Custom
 BraceWrapping:
     BeforeElse: true
 
-ColumnLimit: 79
+ColumnLimit: 80
