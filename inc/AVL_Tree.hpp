@@ -6,6 +6,8 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <cstddef>
+#include <utility>
 
 namespace SearchTree {
 	template <typename KeyT, typename Comp = std::less<KeyT>>
@@ -17,14 +19,13 @@ namespace SearchTree {
 		using NodePtr = std::unique_ptr<Node>;
 
 		Node* root_ = nullptr;
-		size_t size_ = 0;
 		Comp comp_;
 		std::vector<NodePtr> nodes_;
 
 		struct Node final {
 			private:
 
-			size_t get_size(Node* node) const {
+			std::size_t get_size(Node* node) const {
 				return node ? node->size_ : 0;
 			}
 
@@ -34,13 +35,13 @@ namespace SearchTree {
 			Node* right_ = nullptr;
 			Node* left_ = nullptr;
 			Node* parent_ = nullptr;
-			size_t height_ = 0, size_ = 0;
+			std::size_t height_ = 0, size_ = 0;
 			Comp comp_;
 
 			Node(const KeyT& key) : key_(key){};
 
-			size_t get_rank() const {
-				size_t rank = get_size(left_);
+			std::size_t get_rank() const {
+				std::size_t rank = get_size(left_);
 				Node* node = parent_;
 
 				while (node) {
@@ -117,11 +118,13 @@ namespace SearchTree {
 			const KeyT& operator*() const { return current_->key_; }
 		};
 
-		size_t get_height(Node* node) const {
+		std::size_t get_height(Node* node) const {
 			return node ? node->height_ : 0;
 		}
 
-		size_t get_size(Node* node) const { return node ? node->size_ : 0; }
+		std::size_t get_size(Node* node) const {
+			return node ? node->size_ : 0;
+		}
 
 		int calculate_balance_factor(Node* node) const {
 			assert(node);
@@ -261,7 +264,6 @@ namespace SearchTree {
 			Node* new_copy = new_node.get();
 
 			new_node->parent_ = parent;
-			new_node->size_++;
 			new_node->height_++;
 
 			nodes_.push_back(std::move(new_node));
@@ -334,7 +336,6 @@ namespace SearchTree {
 
 		void swap(SearchTree& tree) noexcept {
 			std::swap(root_, tree.root_);
-			std::swap(size_, tree.size_);
 			std::swap(nodes_, tree.nodes_);
 		}
 
@@ -343,9 +344,8 @@ namespace SearchTree {
 		SearchTree() = default;
 
 		SearchTree(const SearchTree& tree) {
-			for (auto start_it = tree.begin(), end_it = tree.end();
-				 start_it != end_it; ++start_it) {
-				insert(*start_it);
+			for (auto&& key : tree) {
+				insert(key);
 			}
 		}
 
@@ -372,37 +372,43 @@ namespace SearchTree {
 			if (search(root_, key))
 				return;
 
-			size_++;
 			root_ = insert_to_node(root_, nullptr, key);
+		}
+
+		template <typename T>
+		void insert(T&& key) {
+			auto key_forward = std::forward<T>(key);
+
+			if (search(root_, key_forward))
+				return;
+
+			root_ = insert_to_node(root_, nullptr, key_forward);
+		}
+
+		template <typename... Args>
+		void emplace(Args&&... args) {
+			KeyT key(std::forward<Args>(args)...);
+
+			insert(std::move(key));
 		}
 
 		SearchTreeIt search(const KeyT& key) const {
 			return SearchTreeIt{search(root_, key)};
 		}
 
-		SearchTreeIt next(const SearchTreeIt& it) const {
-			return SearchTreeIt{next(search(root_, *it))};
-		}
+		SearchTreeIt min() const { return SearchTreeIt{min(root_)}; }
 
-		SearchTreeIt prev(const SearchTreeIt& it) const {
-			return SearchTreeIt{prev(search(root_, *it))};
-		}
-
-		SearchTreeIt min(const SearchTreeIt& it) const {
-			return SearchTreeIt{min(root_)};
-		}
-
-		SearchTreeIt max(const SearchTreeIt& it) const {
-			return SearchTreeIt{max(root_)};
-		}
+		SearchTreeIt max() const { return SearchTreeIt{max(root_)}; }
 
 		SearchTreeIt lower_bound(const KeyT& key) const {
 			if (!root_) {
 				return end();
 			}
 
-			if (search(key) != end()) {
-				return search(key);
+			SearchTreeIt key_it = search(key);
+
+			if (key_it != end()) {
+				return key_it;
 			}
 
 			Node* cur_node = root_;
@@ -439,8 +445,10 @@ namespace SearchTree {
 				return end();
 			}
 
-			if (search(key) != end()) {
-				return search(key);
+			SearchTreeIt key_it = search(key);
+
+			if (key_it != end()) {
+				return key_it;
 			}
 
 			Node* cur_node = root_;
