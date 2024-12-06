@@ -264,6 +264,7 @@ namespace SearchTree {
 			Node* new_copy = new_node.get();
 
 			new_node->parent_ = parent;
+			new_node->size_++;
 			new_node->height_++;
 
 			nodes_.push_back(std::move(new_node));
