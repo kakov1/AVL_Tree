@@ -38,8 +38,6 @@ namespace SearchTree {
 			std::size_t height_ = 0, size_ = 0;
 			Comp comp_;
 
-			Node(const KeyT& key) : key_(key){};
-
 			template <typename... Args>
 			Node(Args&&... args) : key_(std::forward<Args>(args)...){};
 
@@ -281,16 +279,6 @@ namespace SearchTree {
 			return tune_node(new_node);
 		}
 
-		template <typename... Args>
-		Node* create_node(Args&&... args) {
-			NodePtr new_node =
-				std::make_unique<Node>(std::forward<Args>(args)...);
-
-			return tune_node(new_node);
-		}
-
-		void delete_node() { nodes_.pop_back(); }
-
 		Node* search(Node* node, const KeyT& key) const {
 			while (node && (comp_(key, node->key_) || comp_(node->key_, key))) {
 				if (comp_(key, node->key_)) {
@@ -397,30 +385,25 @@ namespace SearchTree {
 		}
 
 		void insert(KeyT&& key) {
-			auto key_forward = std::forward<KeyT>(key);
-
-			if (search(root_, key_forward)) {
+			if (search(root_, key)) {
 				return;
 			}
 
-			root_ = insert_node(create_node(key_forward));
-		}
-
-		template <typename... Args>
-		void insert(Args&&... args) {
-			Node* node = create_node(std::forward<Args>(args)...);
-
-			if (search(root_, node->key_)) {
-				delete_node();
-				return;
-			}
-
-			root_ = insert_node(node);
+			root_ = insert_node(create_node(key));
 		}
 
 		template <typename... Args>
 		void emplace(Args&&... args) {
-			insert(std::forward<Args>(args)...);
+			NodePtr node = std::make_unique<Node>(std::forward<Args>(args)...);
+
+			if (search(root_, node->key_)) {
+				return;
+			}
+
+			Node* node_ptr = node.get();
+			tune_node(node);
+
+			root_ = insert_node(node_ptr);
 		}
 
 		SearchTreeIt search(const KeyT& key) const {
