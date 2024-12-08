@@ -279,6 +279,12 @@ namespace SearchTree {
 			return tune_node(new_node);
 		}
 
+		Node* create_node(KeyT&& key) {
+			NodePtr new_node = std::make_unique<Node>(std::move(key));
+
+			return tune_node(new_node);
+		}
+
 		Node* search(Node* node, const KeyT& key) const {
 			while (node && (comp_(key, node->key_) || comp_(node->key_, key))) {
 				if (comp_(key, node->key_)) {
@@ -389,7 +395,7 @@ namespace SearchTree {
 				return;
 			}
 
-			root_ = insert_node(create_node(key));
+			root_ = insert_node(create_node(std::move(key)));
 		}
 
 		template <typename... Args>
