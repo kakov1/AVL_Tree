@@ -11,7 +11,7 @@
 
 namespace SearchTree {
 	template <typename KeyT, typename Comp = std::less<KeyT>>
-	class SearchTree final {
+	class SearchTree {
 		private:
 
 		struct Node;
