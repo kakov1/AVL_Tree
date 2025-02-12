@@ -5,5 +5,10 @@ find_package(GTest REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
 
+
+add_library(avl_tree INTERFACE)
+
+target_include_directories(avl_tree INTERFACE ./inc)
+
 add_subdirectory(src)
 add_subdirectory(tests)
