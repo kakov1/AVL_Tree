@@ -10,7 +10,7 @@
 class TestTree : public testing::Test {
 	protected:
 
-	SearchTree::SearchTree<int> tree;
+	hwt::SearchTree<int> tree;
 
 	TestTree() {
 		for (int i = 0; i < 100; ++i) {
@@ -45,7 +45,7 @@ std::string test(int test_number) {
 
 	test_file.exceptions(std::ifstream::badbit);
 
-	SearchTree::SearchTree<int> tree;
+	hwt::SearchTree<int> tree;
 
 	std::string result, request;
 
@@ -116,9 +116,9 @@ TEST_F(TestTree, TestRangeQueries) {
 }
 
 TEST_F(TestTree, TestConstructors) {
-	SearchTree::SearchTree<int> tree_copy1 = tree;
-	SearchTree::SearchTree<int> tree_copy2;
-	SearchTree::SearchTree<int> tree_copy3;
+	hwt::SearchTree<int> tree_copy1 = tree;
+	hwt::SearchTree<int> tree_copy2;
+	hwt::SearchTree<int> tree_copy3;
 
 	tree = tree;
 	tree = std::move(tree);
@@ -133,17 +133,17 @@ TEST_F(TestTree, TestConstructors) {
 	ASSERT_FALSE(tree == tree_copy2);
 	ASSERT_FALSE(tree == tree_copy3);
 
-	SearchTree::SearchTree<int> tree_copy4 = std::move(tree_copy1);
-	SearchTree::SearchTree<int> tree_copy5 = std::move(tree_copy3);
+	hwt::SearchTree<int> tree_copy4 = std::move(tree_copy1);
+	hwt::SearchTree<int> tree_copy5 = std::move(tree_copy3);
 
 	ASSERT_TRUE(tree == tree_copy4);
 	ASSERT_FALSE(tree == tree_copy5);
 }
 
 TEST_F(TestTree, TestAssign) {
-	SearchTree::SearchTree<int> tree_copy1;
-	SearchTree::SearchTree<int> tree2;
-	SearchTree::SearchTree<int> tree_copy2;
+	hwt::SearchTree<int> tree_copy1;
+	hwt::SearchTree<int> tree2;
+	hwt::SearchTree<int> tree_copy2;
 
 	for (int i = 13; i < 34; ++i) {
 		tree2.insert(i);
@@ -155,8 +155,8 @@ TEST_F(TestTree, TestAssign) {
 	ASSERT_TRUE(tree == tree_copy1);
 	ASSERT_FALSE(tree == tree_copy2);
 
-	SearchTree::SearchTree<int> tree_copy3 = std::move(tree_copy1);
-	SearchTree::SearchTree<int> tree_copy4 = std::move(tree_copy2);
+	hwt::SearchTree<int> tree_copy3 = std::move(tree_copy1);
+	hwt::SearchTree<int> tree_copy4 = std::move(tree_copy2);
 
 	ASSERT_TRUE(tree == tree_copy3);
 	ASSERT_FALSE(tree == tree_copy4);

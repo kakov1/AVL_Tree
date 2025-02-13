@@ -2,9 +2,9 @@
 #include <iostream>
 
 int main() {
-	SearchTree::SearchTree<int> tree;
+  hwt::SearchTree<int> tree;
 
-	std::cout << read_and_process<SearchTree::SearchTree<int>, int>(tree);
+  std::cout << read_and_process<hwt::SearchTree<int>, int>(tree);
 
-	return 0;
+  return 0;
 }
