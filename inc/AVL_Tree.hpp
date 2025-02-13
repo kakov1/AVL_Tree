@@ -11,7 +11,7 @@
 
 namespace hwt {
 template <typename KeyT, typename Comp = std::less<KeyT>> class SearchTree {
-private:
+protected:
   struct Node;
 
   using NodePtr = std::unique_ptr<Node>;
@@ -21,7 +21,7 @@ private:
   std::vector<NodePtr> nodes_;
 
   struct Node final {
-  private:
+  
     std::size_t get_size(Node *node) const { return node ? node->size_ : 0; }
 
   public:
@@ -59,7 +59,7 @@ private:
     using pointer = KeyT *;
     using reference = KeyT &;
 
-  private:
+  
     Node *current_;
 
   public:
@@ -128,7 +128,7 @@ private:
   void set_size(Node *node) const {
     node->size_ = get_size(node->left_) + get_size(node->right_) + 1;
   }
-private:
+
   void set_parents(Node *node, Node *child_copy) {
     child_copy->parent_ = node->parent_;
 
@@ -187,7 +187,7 @@ private:
 
     return right_copy;
   }
-protected:
+
   Node *balance(Node *node) {
     assert(node);
 
@@ -206,7 +206,7 @@ protected:
     }
     return node;
   }
-private:
+
   Node *insert_node(Node *insertable) {
     if (!root_) {
       root_ = insertable;
