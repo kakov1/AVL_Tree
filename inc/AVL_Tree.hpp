@@ -372,7 +372,7 @@ public:
 
   virtual ~SearchTree() = default;
 
-  bool operator==(const SearchTree<KeyT> &rhs) { return is_equal(rhs); }
+  bool operator==(const SearchTree<KeyT> &rhs) { return is_equal(rhs.root_); }
 
   const Node *get_root() const { return root_; }
 
@@ -491,17 +491,17 @@ public:
     return SearchTreeIt{min_node};
   }
 
-  bool is_equal(const SearchTree &rhs) const {
-    if (!root_ && !rhs.root_) {
+  bool is_equal(const Node* rhs_root) const {
+    if (!root_ && !rhs_root) {
       return true;
     }
 
-    if ((!root_ && rhs.root_) || (root_ && !rhs.root_)) {
+    if ((!root_ && rhs_root) || (root_ && !rhs_root)) {
       return false;
     }
 
     Node *cur_node1 = root_;
-    Node *cur_node2 = rhs.root_;
+    Node *cur_node2 = const_cast<Node*>(rhs_root);
 
     std::deque<Node *> queue1;
     std::deque<Node *> queue2;
