@@ -8,6 +8,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include <unordered_map>
 
 namespace hwt {
 template <typename KeyT, typename Comp = std::less<KeyT>> class SearchTree {
@@ -18,7 +19,7 @@ protected:
 
   Node *root_ = nullptr;
   Comp comp_;
-  std::vector<NodePtr> nodes_;
+  std::unordered_map<KeyT, NodePtr> nodes_;
 
   struct Node final {
 
@@ -259,7 +260,7 @@ protected:
     new_node_ptr->size_++;
     new_node_ptr->height_++;
 
-    nodes_.push_back(std::move(node));
+    nodes_[node->key_] = std::move(node);
 
     return new_node_ptr;
   }
