@@ -6,9 +6,9 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <unordered_map>
 #include <utility>
 #include <vector>
-#include <unordered_map>
 
 namespace hwt {
 template <typename KeyT, typename Comp = std::less<KeyT>> class SearchTree {
@@ -373,6 +373,8 @@ public:
   virtual ~SearchTree() = default;
 
   bool operator==(const SearchTree<KeyT> &rhs) { return is_equal(rhs); }
+
+  const Node *get_root() const { return root_; }
 
   void insert(const KeyT &key) {
     if (search(root_, key)) {
