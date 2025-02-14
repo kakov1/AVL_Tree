@@ -21,7 +21,7 @@ protected:
   std::vector<NodePtr> nodes_;
 
   struct Node final {
-  
+
     std::size_t get_size(Node *node) const { return node ? node->size_ : 0; }
 
   public:
@@ -34,6 +34,16 @@ protected:
 
     template <typename... Args>
     Node(Args &&...args) : key_(std::forward<Args>(args)...){};
+
+    Node(const Node &node) = default;
+
+    Node &operator=(const Node &node) = default;
+
+    Node(Node &&node) = delete;
+
+    Node &operator=(Node &&node) = delete;
+
+    ~Node() = default;
 
     std::size_t get_rank() const {
       std::size_t rank = get_size(left_);
@@ -59,7 +69,6 @@ protected:
     using pointer = KeyT *;
     using reference = KeyT &;
 
-  
     Node *current_;
 
   public:
@@ -534,4 +543,4 @@ public:
   SearchTreeIt begin() const { return SearchTreeIt{min(root_)}; }
   SearchTreeIt end() const { return SearchTreeIt{}; }
 };
-} // namespace SearchTree
+} // namespace hwt
