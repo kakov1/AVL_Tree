@@ -53,7 +53,7 @@ void vizualize_tree(const hwt::SearchTree<KeyT> &tree,
   if (tree.begin() == tree.end())
     return;
 
-  if (tree.root_->height_ > 7) {
+  if (tree.root_->height_ > 7) {  
     std::cout << "Node is too big for vizualization" << std::endl;
     return;
   }

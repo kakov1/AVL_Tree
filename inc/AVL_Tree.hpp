@@ -207,7 +207,7 @@ protected:
       if (node->left_ && calculate_balance_factor(node->left_) < 0) {
         rotate_left(node->left_);
       }
-      return rotate_right(node);
+      return rotate_right(node);  
     } else if (calculate_balance_factor(node) < -1) {
       if (node->right_ && calculate_balance_factor(node->right_) > 0) {
         rotate_right(node->right_);
@@ -372,7 +372,7 @@ public:
 
   virtual ~SearchTree() = default;
 
-  bool operator==(const SearchTree<KeyT> &rhs) { return is_equal(rhs.root_); }
+  bool operator==(const SearchTree<KeyT> &rhs) { return is_equal(root_, rhs.root_); }
 
   const Node *get_root() const { return root_; }
 
@@ -491,17 +491,17 @@ public:
     return SearchTreeIt{min_node};
   }
 
-  bool is_equal(const Node* rhs_root) const {
-    if (!root_ && !rhs_root) {
+  bool is_equal(Node* lhs_root, Node* rhs_root) const {
+    if (!lhs_root && !rhs_root) {
       return true;
     }
 
-    if ((!root_ && rhs_root) || (root_ && !rhs_root)) {
+    if ((!lhs_root && rhs_root) || (lhs_root && !rhs_root)) {
       return false;
     }
 
-    Node *cur_node1 = root_;
-    Node *cur_node2 = const_cast<Node*>(rhs_root);
+    Node *cur_node1 = lhs_root;
+    Node *cur_node2 = rhs_root;
 
     std::deque<Node *> queue1;
     std::deque<Node *> queue2;
