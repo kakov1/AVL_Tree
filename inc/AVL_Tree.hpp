@@ -372,7 +372,7 @@ public:
 
   virtual ~SearchTree() = default;
 
-  bool operator==(const SearchTree<KeyT> &rhs) { return is_equal(root_, rhs.root_); }
+  bool operator==(const SearchTree<KeyT> &rhs) const { return is_equal(root_, rhs.root_); }
 
   const Node *get_root() const { return root_; }
 
